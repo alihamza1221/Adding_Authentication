@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const ejs = require('ejs');
 const db = require('./databaseMySql/registrationform');
 const {encrypt,decrypt} = require('./encryption');
+const md5 = require('md5');
 const port = 3000;
 app.use(bodyParser.urlencoded({ extended: true}));
 app.set('view engine', 'ejs');
@@ -27,8 +28,9 @@ app.post('/login', async (req, res) => {
         
         if (data) {
             const user = data[0];
-            const decryptedpassword = decrypt(user.password);
-            if (decryptedpassword === req.body.password) {
+          
+            const hasdcode = md5(req.body.password);
+            if (user.password === hasdcode) {
                 res.render('secrets');
             } else {
                 throw new Error('Invalid password');
@@ -46,10 +48,10 @@ app.get('/register', (req, res) =>{
 });
 
 app.post('/register',async (req, res,) =>{
-    const encryptedpassword = encrypt(req.body.password);
+    const hashpassword = md5(req.body.password);
     const login = [
          req.body.username,
-         encryptedpassword
+         hashpassword
     ]
     try {
         const query = `insert into user_registertion 
